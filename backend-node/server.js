@@ -15,7 +15,7 @@ program.parse(process.argv);
 const options = program.opts();
 
 if (options.commandsfile === undefined) {
-    console.log('-c (--commands-file) argument is required');
+    console.log('-c (--commandsfile) argument is required');
     exit(-1);
 }
 

@@ -1,0 +1,17 @@
+[package]
+name = "stats-backend-rust"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tide = "0.16.0"
+async-std = { version = "1.8.0", features = ["attributes"] }
+async-trait = { version = "0.1.51" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0" }
+log = { version = "0.4", features = ["std", "serde"] }
+simple_logger = { version = "1.13.0" }
+clap = { version = "2.33.3" }
+execute = { version = "0.2.9" }
