@@ -3,11 +3,14 @@ use simple_logger::SimpleLogger;
 extern crate clap;
 extern crate execute;
 use async_trait::async_trait;
-use execute::{shell, Execute};
+use execute::shell;
+use futures::future::join_all;
 use serde::Serialize;
 use std::fs;
-use std::process::{Command, Stdio};
+use std::process::Stdio;
+use std::str;
 use std::sync::Arc;
+use std::time::Duration;
 use tide::prelude::*;
 use tide::{Endpoint, Error, Request };
 
@@ -101,7 +104,7 @@ async fn start_server(config: Arc<Config>) -> tide::Result<()> {
 }
 
 async fn get_health(_req: Request<()>) -> tide::Result<tide::Response> {
-    Ok("OK".to_string()).map(convert_to_response)
+    Ok("OK".to_string()).map(convert_to_text_response)
 }
 
 struct GetStats {
@@ -117,27 +120,65 @@ impl GetStats {
 #[async_trait]
 impl Endpoint<()> for GetStats {
     async fn call(&self, req: Request<()>) -> tide::Result<tide::Response> {
-        get_stats(req, &self.config).await.map(convert_to_response)
+        get_stats(req, &self.config).await.map(convert_to_json_response)
     }
 }
 
-async fn get_stats(_req: Request<()>, _config: &Config) -> tide::Result<String> {
-    let stats: Vec<Stat> = vec![
-        Stat {
-            key: "host".to_string(),
-            value: "bloop".to_string(),
-        },
-        Stat {
-            key: "narwat".to_string(),
-            value: "goople".to_string(),
-        },
-    ];
-    match serde_json::to_string(&stats) {
+async fn get_stats(_req: Request<()>, config: &Config) -> tide::Result<String> {
+    let stat_futures: Vec<_> = config.commands.iter().map(get_stat_for_command).collect();
+    let done_futures = join_all(stat_futures).await;
+    match serde_json::to_string(&done_futures) {
         Ok(payload) => Ok(payload),
         Err(why) => Err(Error::from(why)),
     }
 }
 
-fn convert_to_response(result: String) -> tide::Response {
-    tide::Response::builder(200).body(result).build()
+async fn get_stat_for_command(command: &CommandDetails) -> Stat {
+    let spawned = shell(&command.command)
+        .stdout(Stdio::piped())
+        .spawn();
+    match spawned {
+        Err(error) => Stat {
+            key: command.key.clone(),
+            value: format!("Error: {}", error),    
+        },
+        Ok(mut child) => {
+            loop {
+                async_std::task::sleep(Duration::from_millis(20)).await;
+                match child.try_wait() {
+                    Ok(None) => (),
+                    Ok(Some(_)) => break,
+                    Err(_) => break,
+                }
+            }
+            match child.wait_with_output() {
+                Err(error) => Stat {
+                    key: command.key.clone(),
+                    value: format!("Error: {}", error),
+                },
+                Ok(output) => {
+                    let stdout = str::from_utf8(&output.stdout).unwrap_or("Failed").trim_end().to_string();
+                    Stat {
+                        key: command.key.clone(),
+                        value: stdout,
+                    }                    
+                }
+            }
+        }
+    }
+}
+
+fn convert_to_text_response(result: String) -> tide::Response {
+    convert_to_response(result, tide::http::mime::PLAIN)
+}
+
+fn convert_to_json_response(result: String) -> tide::Response {
+    convert_to_response(result, tide::http::mime::JSON)
+}
+
+fn convert_to_response(result: String, content_type: impl Into<tide::http::mime::Mime>) -> tide::Response {
+    tide::Response::builder(200)
+        .content_type(content_type)
+        .body(result)
+        .build()
 }
