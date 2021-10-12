@@ -1,6 +1,6 @@
 [
     {
-        "key": "hostname",
+        "key": "name",
         "command": "hostname"
     },
     {

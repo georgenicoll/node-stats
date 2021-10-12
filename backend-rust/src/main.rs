@@ -7,7 +7,7 @@ use execute::shell;
 use futures::future::join_all;
 use serde::Serialize;
 use std::fs;
-use std::process::Stdio;
+use std::process::{Child, Stdio};
 use std::str;
 use std::sync::Arc;
 use std::time::Duration;
@@ -140,30 +140,32 @@ async fn get_stat_for_command(command: &CommandDetails) -> Stat {
     match spawned {
         Err(error) => Stat {
             key: command.key.clone(),
-            value: format!("Error: {}", error),    
+            value: format!("Couldn't spawn child process: {}", error),    
         },
-        Ok(mut child) => {
-            loop {
-                async_std::task::sleep(Duration::from_millis(20)).await;
-                match child.try_wait() {
-                    Ok(None) => (),
-                    Ok(Some(_)) => break,
-                    Err(_) => break,
-                }
-            }
-            match child.wait_with_output() {
-                Err(error) => Stat {
-                    key: command.key.clone(),
-                    value: format!("Error: {}", error),
-                },
-                Ok(output) => {
-                    let stdout = str::from_utf8(&output.stdout).unwrap_or("Failed").trim_end().to_string();
-                    Stat {
-                        key: command.key.clone(),
-                        value: stdout,
-                    }                    
-                }
-            }
+        Ok(child) => wait_for_process(command, child).await
+    }
+}
+
+async fn wait_for_process(command: &CommandDetails, mut child: Child) -> Stat {
+    loop {
+        async_std::task::sleep(Duration::from_millis(20)).await;
+        match child.try_wait() {
+            Ok(None) => (),
+            Ok(Some(_)) => break,
+            Err(_) => break,
+        }
+    }
+    match child.wait_with_output() {
+        Err(error) => Stat {
+            key: command.key.clone(),
+            value: format!("Error: {}", error),
+        },
+        Ok(output) => {
+            let stdout = str::from_utf8(&output.stdout).unwrap_or("Failed").trim_end().to_string();
+            Stat {
+                key: command.key.clone(),
+                value: stdout,
+            }                    
         }
     }
 }
