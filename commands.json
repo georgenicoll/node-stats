@@ -6,5 +6,9 @@
     {
         "key": "cpu",
         "command": "echo $(expr 100 - $(vmstat 1 2|tail -1|awk '{print $15}'))\"%\""
+    },
+    {
+        "key": "temperature",
+        "command": "echo -e \"$(expr $(cat /sys/class/thermal/thermal_zone1/temp) / 1000)\\xe2\\x84\\x83\""
     }
 ]
