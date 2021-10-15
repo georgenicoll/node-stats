@@ -1,14 +1,18 @@
 [
     {
         "key": "name",
-        "command": "hostname"
+        "command": "cat /etc/hostname"
     },
     {
         "key": "cpu",
-        "command": "echo $(expr 100 - $(vmstat 1 2|tail -1|awk '{print $15}'))\"%\""
+        "command": "echo $(expr 100 - $(vmstat 1 2|tail -1|awk '{print $15}'))%"
+    },
+    {
+        "key": "used-memory",
+        "command": "echo $(expr 100 - 100 \\* $(free|head -n 2|tail -1|awk '{print $7}') / $(free|head -n 2|tail -1|awk '{print $2}'))%"
     },
     {
         "key": "temperature",
-        "command": "echo -e \"$(expr $(cat /sys/class/thermal/thermal_zone1/temp) / 1000)\\xe2\\x84\\x83\""
+        "command": "echo -e $(expr $(cat /sys/class/thermal/thermal_zone0/temp) / 1000)\\xe2\\x84\\x83"
     }
 ]

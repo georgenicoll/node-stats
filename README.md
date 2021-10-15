@@ -15,4 +15,4 @@ Dockerfiles are provided for the rust backend and the frontend.
 
 DaemonSet, Deployment and Service definitions are provided for the following:
 - `backend-rust`: DaemonSet to run the backend on each node, Service of type None to get the k8 DNS to provide an A record containing all members in the DaemonSet
-- `frontend`: Deployment to run the frontend on a single node, Service of type LoadBalancer set up to register with metallb (see my other projects https://github.com/georgenicoll/ansible for setup details and https://github.com/georgenicoll/coredns/tree/master/plugin/k8s_ext_dhcp for k8 aware local network DNS)
+- `frontend`: Deployment to run the frontend on a single node, Service of type LoadBalancer set up to register with metallb (see https://github.com/georgenicoll/ansible for setup details and https://github.com/georgenicoll/coredns/tree/master/plugin/k8s_ext_dhcp for k8 aware local network DNS)
