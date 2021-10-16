@@ -1,11 +1,15 @@
 <script>
-    export let nodeName;
-    export let nodeStats;
+    import { Styles } from 'sveltestrap';
+
+	export let nodeStats;
 </script>
 
-<h1>{ nodeName }</h1>
-<ul>
-    {#each nodeStats as { key, value }}
-    <li>{ key }: { value }</li>
-    {/each}
-</ul>
+<Styles/>
+
+<div class="container">
+	<ul>
+		{#each nodeStats as { key, value }}
+			<li>{key}: {value}</li>
+		{/each}
+	</ul>
+</div>

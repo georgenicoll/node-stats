@@ -21,7 +21,7 @@ export async function get({ params }) {
         }
 
         let stats = new Promise<string[]>((resolve, reject) => {
-            dns.resolve('mandrill.lan', "A", (err, resolved_addresses) => {
+            dns.resolve('localhost', "A", (err, resolved_addresses) => {
                 if (err) {
                     reject(err)
                     return

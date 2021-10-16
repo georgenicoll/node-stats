@@ -6,6 +6,7 @@
     import NodeStats from '$lib/NodeStats.svelte';
     import { onMount } from 'svelte';
     import { writable } from 'svelte/store'
+    import { Styles, Card, CardHeader, CardTitle, CardBody, Alert, Button } from 'sveltestrap';
 
     const empty_statistics = { nodes: [] }
     const url = `/statistics.json`;
@@ -19,7 +20,12 @@
         const res = await fetch(url);
         if (res.ok) {
             failure.set("");
-            await res.json().then(stats => statistics.set(stats))
+            await res.json().then(stats => {
+                stats.nodes.sort((a, b) => {
+                    return a.key.localeCompare(b.key);
+                });
+                statistics.set(stats);
+            })
         } else {
             statistics.set(empty_statistics);
             failure.set(failureString(res));
@@ -31,24 +37,25 @@
     }
 </script>
 
-<style>
-    .failure {
-        color: red;
-        font-weight: bolder;
-    }
-</style>
+<Styles/>
 
-<div >
+<div class="container">
 <h1>Node Statistics</h1>
+
+<Card>
 {#each $statistics.nodes as {name, stats}}
-    <NodeStats nodeName={ name } nodeStats={ stats } />
+    <CardHeader>
+        <CardTitle>{ name }</CardTitle>
+    </CardHeader>
+    <CardBody>
+        <NodeStats nodeStats={ stats } />
+    </CardBody>
 {/each}
+</Card>
 
 {#if $failure.length > 0}
-<p>
-    <span class="failure">{ failure }</span>
-</p>
+<Alert color="danger" dismissible>{ failure }</Alert>
 {/if}
-</div>
 
-<button on:click={ refresh }>Refresh</button>
+<Button on:click={ refresh }>Refresh</Button>
+</div>

@@ -1,1 +1,111 @@
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stats-commands
+data:
+  commands.json: |
+    [
+      {
+        "key": "name",
+        "command": "cat /etc/hostname"
+      },
+      {
+        "key": "cpu",
+        "command": "echo $(expr 100 - $(vmstat 1 2|tail -1|awk '{print $15}'))%"
+      },
+      {
+        "key": "used-memory",
+        "command": "echo $(expr 100 - 100 \\* $(free|head -n 2|tail -1|awk '{print $7}') / $(free|head -n 2|tail -1|awk '{print $2}'))%"
+      },
+      {
+        "key": "temperature",
+        "command": "echo -e $(expr $(cat /sys/class/thermal/thermal_zone0/temp) / 1000) C"
+      }
+    ]
+---
+apiVersion: apps/v1  
+kind: DaemonSet
+metadata:
+  name: node-stats-backend
+  labels:
+    app: node-stats-backend
+spec:
+  selector:
+    matchLabels:
+      app: node-stats-backend
+  template:
+    metadata:
+      name: node-stats-backend
+      labels:
+        app: node-stats-backend
+    spec:
+      containers:
+      - name: backend-rust
+        image: georgenicoll/stats-backend-rust:latest
+        command: [ "./stats-backend-rust" ]
+        args:
+        - "-p"
+        - "80"
+        - "-f"
+        - "/config/commands.json"
+        ports:
+        - containerPort: 80
+          name: http
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "35Mi"
+          limits:
+            cpu: "100m"
+            memory: "100Mi"
+        readinessProbe:
+          initialDelaySeconds: 2
+          periodSeconds: 5
+          httpGet:
+            scheme: HTTP
+            path: /api/health
+            port: 80
+        livenessProbe:
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          httpGet:
+            scheme: HTTP
+            path: /api/health
+            port: 80
+        securityContext:
+          allowPrivilegeEscalation: false
+        volumeMounts:
+        - name: config
+          mountPath: /config
+          readOnly: true
+        - name: etc-hostname
+          mountPath: /etc/hostname
+          readOnly: true
+        - name: sys-class
+          mountPath: /sys/class
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: stats-commands
+      - name: etc-hostname
+        hostPath:
+          path: /etc/hostname
+      - name: sys-class
+        hostPath:
+          path: /sys/class
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-stats-backend
+spec:
+  selector:
+    app: node-stats-backend
+  type: ClusterIP
+  clusterIP: None 
+  ports:
+  - port: 80
+    targetPort: 80
+---
