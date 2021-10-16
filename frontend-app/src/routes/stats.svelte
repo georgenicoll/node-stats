@@ -33,7 +33,7 @@
 				var obj = {
 					loading: false,
 					nodes: stats.nodes.sort((a, b) => {
-						return a.key.localeCompare(b.key);
+						return a.name.localeCompare(b.name);
 					})
 				};
 				statistics.set(stats);
@@ -61,6 +61,10 @@
 
 <div class="container">
 	<h1>Node Statistics</h1>
+
+	<Fade isOpen={!$statistics.loading}>
+		<Button color="primary" on:click={refresh}>Refresh</Button>
+	</Fade>
 
 	{#if !$failure.failed}
 		<Collapse isOpen={$statistics.loading}>
@@ -92,8 +96,4 @@
 			<CardBody>{$failure.long_message}</CardBody>
 		</Card>
 	{/if}
-
-	<Fade isOpen={!$statistics.loading}>
-		<Button on:click={refresh}>Refresh</Button>
-	</Fade>
 </div>
