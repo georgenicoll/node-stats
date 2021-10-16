@@ -1,13 +1,16 @@
-FROM alpine:latest as build
+FROM alpine:edge as build
 
 RUN apk upgrade --no-cache && \
-    apk add cargo
-COPY src/main.rs src/main.rs
-COPY Cargo.* ./
-RUN cargo update && cargo build --release
+    apk add nodejs-current npm
+COPY src /src
+COPY static /static
+COPY *.cjs /
+COPY *.js /
+COPY *.json /
+RUN npm update && npm run build
 
-FROM alpine:latest as runtime
+FROM alpine:edge as runtime
 RUN apk upgrade --no-cache && \
-    apk add bash musl libgcc procps
-COPY --from=build target/release/stats-backend-rust stats-backend-rust
-COPY tmp/commands.json ./example-commands.json
+    apk add bash nodejs-current
+COPY --from=build build stats-frontend/app/
+COPY --from=build package-cutdown.json stats-frontend/package.json

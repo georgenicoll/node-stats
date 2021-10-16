@@ -1,4 +1,5 @@
 import dns from 'dns';
+import { env_config } from '$lib/env_config';
 
 export async function get({ params }) {
     const stats = async () => {
@@ -21,7 +22,7 @@ export async function get({ params }) {
         }
 
         let stats = new Promise<string[]>((resolve, reject) => {
-            dns.resolve('localhost', "A", (err, resolved_addresses) => {
+            dns.resolve(env_config.backend_dns_address, "A", (err, resolved_addresses) => {
                 if (err) {
                     reject(err)
                     return
@@ -30,7 +31,9 @@ export async function get({ params }) {
             })
         }).then(addresses => {
             let promises = addresses.map(address => {
-                return fetch('http://' + address + ':9000/api/stats')
+                let url = 'http://' + address + ':' + env_config.backend_port + '/api/stats';
+                console.log(url);
+                return fetch(url)
                     .then(value => value.json())
                     .then(stats => convert_stats(stats, 0));
             })

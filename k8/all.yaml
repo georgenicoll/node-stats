@@ -109,3 +109,53 @@ spec:
   - port: 80
     targetPort: 80
 ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-stats-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node-stats-frontend
+  template:
+    metadata:
+      labels:
+        app: node-stats-frontend
+    spec:
+      containers:
+      - name: node-stats-frontend
+        image: georgenicoll/stats-frontend
+        env:
+        - name: BACKEND_DNS_ADDRESS
+          value: node-stats-backend
+        - name: BACKEND_PORT
+          value: "80"
+        workingDir: /stats-frontend
+        command: [ "node" ]
+        args:
+        - "app/index.js"
+        resources:
+          requests:
+            memory: "25Mi"
+            cpu: "25m"
+          limits:
+            memory: "50Mi"
+            cpu: "50m"
+        ports:
+        - containerPort: 80
+          name: http
+        readinessProbe:
+          initialDelaySeconds: 2
+          periodSeconds: 5
+          httpGet:
+            scheme: HTTP
+            path: /health
+            port: 80
+        livenessProbe:
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          httpGet:
+            scheme: HTTP
+            path: /health
+            port: 80
