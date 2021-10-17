@@ -1,5 +1,5 @@
 import dns from 'dns';
-import { env_config } from '$lib/env_config';
+import env_config from '$lib/env_config';
 
 export async function get({ params }) {
     const stats = async () => {

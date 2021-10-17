@@ -1,23 +1,28 @@
-<script>
+<script lang="ts">
 	import NodeStats from '$lib/NodeStats.svelte';
 	import { onMount } from 'svelte';
 	import { writable } from 'svelte/store';
-	import {
-		Styles,
-		Card,
-		CardHeader,
-		CardTitle,
-		CardBody,
-		Button,
-		Spinner,
-		Fade,
-		Collapse
-	} from 'sveltestrap';
+	import TopAppBar, {
+		Row,
+		Section,
+		Title,
+		AutoAdjust,
+		TopAppBarComponentDev
+	} from '@smui/top-app-bar';
+	import IconButton, { Icon } from '@smui/icon-button';
+	// import Section from '@smui/common/';
+	import Card, { Content } from '@smui/card';
+	// --> LayoutGrid
+	import LayoutGrid, { Cell } from '@smui/layout-grid';
+	import CircularProgress from '@smui/circular-progress';
+
+	let topAppBar: TopAppBarComponentDev;
 
 	const empty_statistics = { loading: false, nodes: [] };
 	const loading_statistics = { loading: true, nodes: [] };
 	const empty_failure = { failed: false, short_message: '', long_message: '' };
-	const url = `/statistics.json`;
+	// const url = `/statistics.json`;
+	const url = '/statistics-test-data.json';
 
 	const statistics = writable(loading_statistics);
 	const failure = writable(empty_failure);
@@ -57,43 +62,97 @@
 	<title>Stats</title>
 </svelte:head>
 
-<Styles />
+<TopAppBar bind:this={topAppBar} variant="standard" color="primary">
+	<Row>
+		<Section>
+			<Title>Node Statistics</Title>
+		</Section>
+		<Section align="end" toolbar>
+			{#if !$statistics.loading}
+				<IconButton on:click={refresh}>
+					<Icon class="material-icons">refresh</Icon>
+				</IconButton>
+			{/if}
+		</Section>
+	</Row>
+</TopAppBar>
 
-<div class="container">
-	<h1>Node Statistics</h1>
+<AutoAdjust {topAppBar}>
+	{#if $statistics.loading}
+		<div style="display: flex; justify-content: center">
+			<CircularProgress style="height: 64px; width: 64px;" on={true} indeterminate={true} />
+		</div>
+	{/if}
+	<div class="container">
+		{#if !$failure.failed}
+			<!-- Card -->
+			<!-- {#each $statistics.nodes as { name, stats }}
+				<div class="card-display">
+					<div class="card-container">
+						<Card padded={false}>
+							<Content class="mdc-typography--body2">
+								<h2 class="mdc-typography--headline6" style="margin: 0;">
+									{name}
+								</h2>
+								<NodeStats nodeName={name} nodeStats={stats} />
+							</Content>
+						</Card>
+					</div>
+				</div>
+			{/each} -->
+			<!-- Layout Grid -->
+			<LayoutGrid>
+				{#each $statistics.nodes as { name, stats }}
+					<Cell>
+						<div class="demo-cell; width: 100%">
+							<div class="card-container">
+								<Card padded={false}>
+									<Content>
+										<h2>{name}</h2>
+										<NodeStats nodeName={name} nodeStats={stats} />
+									</Content>
+								</Card>
+							</div>
+						</div>
+					</Cell>
+				{/each}
+			</LayoutGrid>
+		{/if}
 
-	<Fade isOpen={!$statistics.loading}>
-		<Button color="primary" on:click={refresh}>Refresh</Button>
-	</Fade>
-
-	{#if !$failure.failed}
-		<Collapse isOpen={$statistics.loading}>
-			<Fade isOpen={$statistics.loading}>
-				<Spinner color="info" />
-			</Fade>
-		</Collapse>
-		<Collapse isOpen={!$statistics.loading}>
-			<Fade isOpen={!$statistics.loading}>
-				<Card body color="light">
-					{#each $statistics.nodes as { name, stats }}
-						<CardHeader>
-							<CardTitle>{name}</CardTitle>
-						</CardHeader>
-						<CardBody>
-							<NodeStats nodeStats={stats} />
-						</CardBody>
-					{/each}
+		{#if $failure.failed}
+			<!-- Card -->
+			<!-- <div class="card-container">
+				<Card>
+					<Content class="mdc-typography--body2">
+						<h2 class="mdc-typography--headline6" style="margin: 0;">
+							{$failure.short_message}
+						</h2>
+						<p>{$failure.long_message}</p>
+					</Content>
 				</Card>
-			</Fade>
-		</Collapse>
-	{/if}
+			</div> -->
+			<LayoutGrid>
+				<Cell>
+					<div class="demo-cell">
+						<h2 class="mdc-typography--headline6" style="margin: 0;">
+							{$failure.short_message}
+						</h2>
+						{$failure.long_message}
+					</div>
+				</Cell>
+			</LayoutGrid>
+		{/if}
+	</div>
+</AutoAdjust>
 
-	{#if $failure.failed}
-		<Card body color="danger">
-			<CardHeader>
-				<CardTitle>{$failure.short_message}</CardTitle>
-			</CardHeader>
-			<CardBody>{$failure.long_message}</CardBody>
-		</Card>
-	{/if}
-</div>
+<style>
+	.demo-cell {
+		/* height: 60px; */
+		width: auto;
+		display: flex;
+		justify-content: center;
+		align-items: stretch;
+		background-color: var(--mdc-theme-secondary, #333);
+		color: var(--mdc-theme-on-secondary, #fff);
+	}
+</style>

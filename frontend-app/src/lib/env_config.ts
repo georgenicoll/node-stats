@@ -5,4 +5,4 @@ let env_config = {
 };
 console.log(`Environment config set to: ${ JSON.stringify(env_config) }`);
 
-export { env_config };
+export default env_config;

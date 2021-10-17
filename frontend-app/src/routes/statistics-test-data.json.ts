@@ -1,4 +1,13 @@
+import { select_option } from "svelte/internal";
+
 export async function get({ params }) {
+
+    function sleep(ms) {
+        return new Promise((resolve) => {
+            setTimeout(resolve, ms);
+        });
+    }
+
     let body = {
         nodes: [
             { name: "pink", stats: [{ key: "cpu", value: "8%" }, { key: "used-memory", value: "35%" }, { key: "temperature", value: "53 C" }] },
@@ -8,6 +17,7 @@ export async function get({ params }) {
             { name: "purple", stats: [{ key: "cpu", value: "30%" }, { key: "used-memory", value: "37%" }, { key: "temperature", value: "54 C" }] }
         ]
     };
+    await sleep(1000);
     return {
         body: body
     };
