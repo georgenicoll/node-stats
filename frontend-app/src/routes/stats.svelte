@@ -15,6 +15,7 @@
 	// --> LayoutGrid
 	import LayoutGrid, { Cell } from '@smui/layout-grid';
 	import CircularProgress from '@smui/circular-progress';
+import Card from '@smui/card/Card.svelte';
 
 	let topAppBar: TopAppBarComponentDev;
 
@@ -88,7 +89,7 @@
 			<!-- Card -->
 			<!-- {#each $statistics.nodes as { name, stats }}
 				<div class="card-display">
-					<div class="card-container">
+					<div class="card-container demo-cell">
 						<Card padded={false}>
 							<Content class="mdc-typography--body2">
 								<h2 class="mdc-typography--headline6" style="margin: 0;">
@@ -102,20 +103,22 @@
 			{/each} -->
 			<!-- Layout Grid -->
 			<LayoutGrid>
-				{#each $statistics.nodes as { name, stats }}
-					<Cell>
-						<div class="demo-cell; width: 100%">
-							<div class="card-container">
-								<Card padded={false}>
-									<Content>
-										<h2>{name}</h2>
-										<NodeStats nodeName={name} nodeStats={stats} />
-									</Content>
-								</Card>
+				<div class="container">
+					{#each $statistics.nodes as { name, stats }}
+						<Cell class="cell">
+							<div class="cell mdc-elevation--z6">
+								<div class="card-container">
+									<Card padded={false}>
+										<Content>
+											<h2>{name}</h2>
+											<NodeStats nodeName={name} nodeStats={stats} />
+										</Content>
+									</Card>
+								</div>
 							</div>
-						</div>
-					</Cell>
-				{/each}
+						</Cell>
+					{/each}
+				</div>
 			</LayoutGrid>
 		{/if}
 
@@ -133,7 +136,7 @@
 			</div> -->
 			<LayoutGrid>
 				<Cell>
-					<div class="demo-cell">
+					<div class="demo-cell mdc-elevation--z6">
 						<h2 class="mdc-typography--headline6" style="margin: 0;">
 							{$failure.short_message}
 						</h2>
@@ -146,13 +149,11 @@
 </AutoAdjust>
 
 <style>
-	.demo-cell {
-		/* height: 60px; */
-		width: auto;
+	.container {
 		display: flex;
-		justify-content: center;
-		align-items: stretch;
-		background-color: var(--mdc-theme-secondary, #333);
-		color: var(--mdc-theme-on-secondary, #fff);
+		flex-direction: initial;
+	}
+	.cell {
+		padding: 10px;
 	}
 </style>
