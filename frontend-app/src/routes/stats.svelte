@@ -17,7 +17,8 @@
 	const empty_statistics = { loading: false, nodes: [] };
 	const loading_statistics = { loading: true, nodes: [] };
 	const empty_failure = { failed: false, short_message: '', long_message: '' };
-	const url = `/statistics.json`;
+	// const url = `/statistics.json`;
+	const url = `/statistics-test-data.json`;
 
 	const statistics = writable(loading_statistics);
 	const failure = writable(empty_failure);
