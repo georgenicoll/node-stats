@@ -1,0 +1,23 @@
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: only-stats-when-good-intentions
+  namespace: node-stats
+spec:
+  description: "L3-L4 (or L7 if rules are commented out) policy to only allow good intentions access to node-stats-backend"
+  endpointSelector:
+    matchLabels:
+      app: node-stats-backend
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        intentions: good
+    toPorts:
+    - ports:
+      - port: "80"
+        protocol: TCP
+      rules:
+        http:
+        - method: "GET"
+          path: "/api/stats"

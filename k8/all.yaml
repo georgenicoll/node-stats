@@ -126,10 +126,12 @@ spec:
   selector:
     matchLabels:
       app: node-stats-frontend
+      intentions: good
   template:
     metadata:
       labels:
         app: node-stats-frontend
+        intentions: good
     spec:
       containers:
       - name: node-stats-frontend
