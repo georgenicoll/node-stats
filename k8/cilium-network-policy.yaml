@@ -1,3 +1,14 @@
+# Network policy for Cilium
+#---
+#apiVersion: "cilium.io/v2"
+#kind: CiliumNetworkPolicy
+#metadata:
+#  name: external-from-world
+#  namespace: node-stats
+#spec:
+#  endpointSelector:
+#    matchLabels:
+#      app: node-stats-frontend  
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumNetworkPolicy
@@ -8,16 +19,33 @@ spec:
   description: "L3-L4 (or L7 if rules are commented out) policy to only allow good intentions access to node-stats-backend"
   endpointSelector:
     matchLabels:
-      app: node-stats-backend
+      stats-app: backend
   ingress:
   - fromEndpoints:
     - matchLabels:
+        stats-app: frontend
         intentions: good
     toPorts:
     - ports:
       - port: "80"
         protocol: TCP
-      rules:
-        http:
-        - method: "GET"
-          path: "/api/stats"
+      #rules:
+      #  http:
+      #  - method: "GET"
+      #    path: "/api/stats"
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: stats-frontends-accept-anything
+  namespace: node-stats
+spec:
+  description: "Allow all to the stats frontend"
+  endpointSelector:
+    matchLabels:
+      stats-app: frontend
+  ingress:
+  - fromEntities:
+    - world
+    - host
+    - remote-node
